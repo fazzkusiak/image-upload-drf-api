@@ -1,8 +1,8 @@
 from __future__ import annotations
-import uuid
 from PIL import Image
 from django.core.files import File
 from io import BytesIO
+import uuid
 import os
 
 from django.contrib.auth.models import AbstractUser
@@ -63,3 +63,13 @@ class Photo(models.Model):
 
 
     
+class ExpiringLink(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    image = models.ForeignKey(
+        Photo, on_delete=models.CASCADE, help_text="Image")
+    link = models.URLField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    expiration_datetime = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return f"{self.link}"

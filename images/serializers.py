@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from .models import Photo
-from django.core.validators import FileExtensionValidator
-
-class DynamicModelSerializer(serializers.ModelSerializer):
+from .models import Photo, ExpiringLink
+from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
+class DynamicModelSerializer(ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop("fields", None)
@@ -13,7 +12,7 @@ class DynamicModelSerializer(serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
 
-class PhotoCreateSerializer(serializers.ModelSerializer):
+class PhotoCreateSerializer(ModelSerializer):
     
     class Meta:
         model = Photo 
@@ -45,3 +44,32 @@ class PhotoListSerializer(DynamicModelSerializer):
         )
 
 
+
+class ExpiringLinksListSerializer(ModelSerializer):
+    
+    image = serializers.StringRelatedField()
+    expiration_datetime = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = ExpiringLink
+        fields = ("image", "link", "expiration_datetime")
+        read_only_fields = ("link", "expiration_datetime")
+
+
+class UserImagePrimaryKeyRelatedField(PrimaryKeyRelatedField):
+    
+    def get_queryset(self):
+        user = self.context["request"].user
+        queryset = Photo.objects.filter(owner=user)
+        return queryset
+
+
+class ExpiringLinksCreateSerializer(ModelSerializer):
+    
+    expiration_time = serializers.IntegerField(min_value=300, max_value=30000)
+    image = UserImagePrimaryKeyRelatedField()
+
+    class Meta:
+        model = ExpiringLink
+        fields = ("id", "image", "expiration_time")
+        read_only_fields = ("id",)
