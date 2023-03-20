@@ -17,7 +17,13 @@ Admin can create custom tiers.
 2. docker build -t images .
 3. docker run -p 8000:8000 images
 
+admin panel:
+login: admin
+password:admin
 
+sample user with enterprise tier (all permission)
+login: test_enteprise
+password: TOPSECR3T
 
 ## Endpoints
 
